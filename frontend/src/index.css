@@ -1,0 +1,74 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #0e0f11;
+  --bg-2:        #141518;
+  --bg-3:        #1c1d22;
+  --bg-4:        #23242a;
+  --border:      #2a2b32;
+  --border-2:    #35363f;
+  --text:        #e8e9ec;
+  --text-2:      #9fa0ab;
+  --text-3:      #62636e;
+  --accent:      #f5a623;
+  --accent-dim:  #7a510f;
+  --accent-glow: rgba(245,166,35,0.15);
+  --green:       #3ecf8e;
+  --green-dim:   rgba(62,207,142,0.12);
+  --red:         #f06060;
+  --red-dim:     rgba(240,96,96,0.12);
+  --blue:        #5b8dee;
+  --blue-dim:    rgba(91,141,238,0.12);
+
+  /* Bank palette */
+  --sampath:  #e31837;
+  --seylan:   #1a5276;
+  --combank:  #c0392b;
+  --ntb:      #1a3a5c;
+  --hnb:      #004b87;
+  --boc:      #006341;
+  --dfcc:     #00843d;
+  --peoples:  #7b2d8b;
+
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body:    'Barlow', sans-serif;
+  --radius:       8px;
+  --radius-lg:    14px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-2); }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+
+/* Utility */
+.sr-only { position: absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+
+button { cursor: pointer; border: none; font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* Animations */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(245,166,35,0.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(245,166,35,0); }
+  100% { box-shadow: 0 0 0 0 rgba(245,166,35,0); }
+}
+
+.animate-in { animation: fadeUp 0.35s ease both; }

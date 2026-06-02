@@ -1,0 +1,153 @@
+.card {
+  display: flex;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.3s ease both;
+}
+.card:hover {
+  border-color: var(--border-2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+
+.stripe {
+  width: 4px;
+  flex-shrink: 0;
+}
+
+.body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bankTag {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.badges {
+  display: flex;
+  gap: 4px;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--blue-dim);
+  color: var(--blue);
+  letter-spacing: 0.04em;
+}
+.badgeDebit {
+  background: var(--green-dim);
+  color: var(--green);
+}
+
+.supermarket {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.offerText {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.days {
+  display: flex;
+  gap: 3px;
+  margin-top: 2px;
+}
+.day {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: var(--bg-4);
+  color: var(--text-3);
+  border: 1px solid var(--border);
+}
+.dayActive {
+  background: var(--accent-glow);
+  color: var(--accent);
+  border-color: var(--accent-dim);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.validity {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.arrow { color: var(--border-2); }
+.noDate { font-style: italic; }
+
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.daysLeft {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: var(--bg-4);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.critical { background: var(--red-dim); color: var(--red); }
+.soon { background: rgba(245,166,35,0.12); color: var(--accent); }
+
+.activeToday {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.srcLink {
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+.srcLink:hover { color: var(--text); }

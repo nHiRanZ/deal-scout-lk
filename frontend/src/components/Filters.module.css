@@ -1,0 +1,177 @@
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  position: sticky;
+  top: 64px;
+}
+
+.section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.clearBtn {
+  font-size: 11px;
+  color: var(--accent);
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+.clearBtn:hover { text-decoration: underline; }
+
+/* Toggle */
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  user-select: none;
+}
+.toggle input { display: none; }
+.toggleTrack {
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--bg-4);
+  border: 1px solid var(--border-2);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+.toggleThumb {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--text-3);
+  transition: transform 0.2s, background 0.2s;
+}
+.toggle input:checked ~ .toggleTrack {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+.toggle input:checked ~ .toggleTrack .toggleThumb {
+  transform: translateX(14px);
+  background: var(--accent);
+}
+
+/* Card type buttons */
+.cardBtns {
+  display: flex;
+  gap: 4px;
+}
+.cardBtn {
+  flex: 1;
+  padding: 6px 0;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: var(--bg-3);
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+}
+.cardBtn:hover { border-color: var(--border-2); color: var(--text-2); }
+.cardBtnActive {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Bank list */
+.bankList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bankBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid transparent;
+  text-align: left;
+  transition: all 0.15s;
+}
+.bankBtn:hover { background: var(--bg-3); color: var(--text); }
+.bankBtnActive {
+  background: rgba(var(--bank-color-rgb, 245 166 35), 0.08);
+  background: color-mix(in srgb, var(--bank-color, var(--accent)) 10%, transparent);
+  border-color: color-mix(in srgb, var(--bank-color, var(--accent)) 35%, transparent);
+  color: var(--text);
+}
+.bankDot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Supermarket chips */
+.smList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.smChip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: var(--bg-3);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+}
+.smChip:hover { border-color: var(--border-2); color: var(--text); }
+.smChipActive {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.smCount {
+  font-size: 10px;
+  color: var(--text-3);
+  background: var(--bg-4);
+  border-radius: 10px;
+  padding: 0 5px;
+}
+.smChipActive .smCount { background: var(--accent-dim); color: var(--accent); }
