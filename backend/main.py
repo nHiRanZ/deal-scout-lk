@@ -36,6 +36,10 @@ TZ = ZoneInfo("Asia/Colombo")
 CACHE_FILE = Path(__file__).parent / ".offers_cache.json"
 CACHE_TTL_HOURS = 12
 
+# Scheduled scrape slots (hour of day, Asia/Colombo).
+# Skips midnight-05:00 maintenance window; first run of day is 06:00.
+SCRAPE_HOURS = [6, 10, 14, 18, 22]
+
 app = FastAPI(title="LK Bank Deals API", version="1.0.0")
 
 app.add_middleware(
@@ -198,15 +202,50 @@ async def _do_scrape(bank_keys: List[str]) -> None:
         _scraping_in_progress = False
 
 
+# ── Scheduler ────────────────────────────────────────────────────────────────
+
+def _next_scrape_time(now: datetime) -> datetime:
+    """Return the next scheduled scrape time after *now* (Asia/Colombo).
+
+    Slots: 06:00, 10:00, 14:00, 18:00, 22:00.
+    If all today's slots have passed, the next slot is 06:00 tomorrow.
+    """
+    for h in SCRAPE_HOURS:
+        candidate = now.replace(hour=h, minute=0, second=0, microsecond=0)
+        if candidate > now:
+            return candidate
+    tomorrow = now + timedelta(days=1)
+    return tomorrow.replace(hour=SCRAPE_HOURS[0], minute=0, second=0, microsecond=0)
+
+
+_background_tasks: set = set()
+
+
+async def _scheduler_loop() -> None:
+    """Sleep until the next scheduled slot, run a scrape, repeat forever."""
+    while True:
+        now = datetime.now(TZ)
+        next_run = _next_scrape_time(now)
+        wait_secs = (next_run - now).total_seconds()
+        log.info(
+            "Next scheduled scrape at %s (in %.0f min)",
+            next_run.strftime("%Y-%m-%d %H:%M %Z"),
+            wait_secs / 60,
+        )
+        await asyncio.sleep(wait_secs)
+        if not _scraping_in_progress:
+            task = asyncio.create_task(_do_scrape(list(BANKS.keys())))
+            _background_tasks.add(task)
+            task.add_done_callback(_background_tasks.discard)
+
+
 # ── Startup ───────────────────────────────────────────────────────────────────
 @app.on_event("startup")
 async def startup() -> None:
     global _offers, _last_scraped
     cached, scraped_at = _load_cache()
     if cached and scraped_at:
-        tz = TZ if hasattr(TZ, 'localize') else TZ  # pytz vs zoneinfo
         now = datetime.now(TZ)
-        # Make scraped_at timezone-aware if it isn't
         if scraped_at.tzinfo is None:
             try:
                 scraped_at = scraped_at.replace(tzinfo=TZ)
@@ -215,16 +254,24 @@ async def startup() -> None:
         try:
             age = now - scraped_at
         except TypeError:
-            age = timedelta(hours=CACHE_TTL_HOURS + 1)  # force re-scrape on tz mismatch
+            age = timedelta(hours=CACHE_TTL_HOURS + 1)
 
         if age.total_seconds() < CACHE_TTL_HOURS * 3600:
             _offers = cached
             _last_scraped = scraped_at
             log.info("Loaded %d offers from cache (age: %dm)", len(cached), age.seconds // 60)
+            scheduler = asyncio.create_task(_scheduler_loop())
+            _background_tasks.add(scheduler)
+            scheduler.add_done_callback(_background_tasks.discard)
             return
 
-    log.info("Cache stale or missing — triggering background scrape")
-    asyncio.create_task(_do_scrape(list(BANKS.keys())))
+    log.info("Cache stale or missing — scraping now")
+    scrape_task = asyncio.create_task(_do_scrape(list(BANKS.keys())))
+    _background_tasks.add(scrape_task)
+    scrape_task.add_done_callback(_background_tasks.discard)
+    scheduler = asyncio.create_task(_scheduler_loop())
+    _background_tasks.add(scheduler)
+    scheduler.add_done_callback(_background_tasks.discard)
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────

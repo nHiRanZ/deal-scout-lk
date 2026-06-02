@@ -85,7 +85,7 @@
   gap: 8px;
 }
 
-.btnGhost, .btnOutline, .btnAccent {
+.btnOutline, .btnAccent {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -97,21 +97,6 @@
   letter-spacing: 0.03em;
   transition: all 0.15s;
   white-space: nowrap;
-}
-
-.btnGhost {
-  background: transparent;
-  color: var(--text-2);
-  border: 1px solid transparent;
-}
-.btnGhost:hover:not(:disabled) {
-  background: var(--bg-3);
-  color: var(--text);
-  border-color: var(--border);
-}
-.btnGhost:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .btnOutline {

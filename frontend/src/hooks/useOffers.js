@@ -57,14 +57,6 @@ export function useOffers() {
     }, 2500)
   }, [fetchStatus, fetchOffers])
 
-  const triggerScrape = useCallback(async () => {
-    setLoading(true)
-    await api.triggerScrape([])  // always scrape all banks; filter is display-only
-    const s = await fetchStatus()
-    if (s?.scraping) startPoll()
-    else { fetchOffers() }
-  }, [fetchStatus, fetchOffers, startPoll])
-
   // Initial load
   useEffect(() => {
     fetchStatus().then(s => {
@@ -72,7 +64,7 @@ export function useOffers() {
     })
     fetchOffers()
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
-  }, []) // eslint-disable-line
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Re-fetch when filters change
   useEffect(() => {
@@ -87,6 +79,6 @@ export function useOffers() {
     smFilter, setSmFilter,
     activeToday, setActiveToday,
     activeWeek, setActiveWeek,
-    triggerScrape, fetchOffers,
+    fetchOffers,
   }
 }

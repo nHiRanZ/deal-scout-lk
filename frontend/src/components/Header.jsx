@@ -1,17 +1,18 @@
-import { RefreshCw, Calendar, Download, ExternalLink, Wifi, WifiOff } from 'lucide-react'
+import { RefreshCw, Calendar, Download } from 'lucide-react'
 import { api } from '../lib/api'
 import styles from './Header.module.css'
 
-const WEEKDAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
-
-function formatAge(mins) {
-  if (mins == null) return '—'
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
-  return `${Math.floor(mins/60)}h ago`
+function formatLastSynced(isoStr) {
+  if (!isoStr) return '—'
+  const d = new Date(isoStr)
+  const now = new Date()
+  const isToday = d.toDateString() === now.toDateString()
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+  if (isToday) return `Today at ${time}`
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' at ' + time
 }
 
-export default function Header({ status, loading, onScrape, filters }) {
+export default function Header({ status, filters }) {
   const scraping = status?.scraping
 
   function handleDownload() {
@@ -19,10 +20,8 @@ export default function Header({ status, loading, onScrape, filters }) {
   }
 
   function handleAddToGoogle() {
-    // For local use: download the ICS and prompt user to open with Google Calendar
     const icsUrl = api.icsUrl({ banks: filters.banks, cards: filters.cards })
     const fullUrl = window.location.origin + icsUrl
-    // Google Calendar 'Add by URL' (requires public URL; works locally if GCal can reach it)
     const gcUrl = `https://calendar.google.com/calendar/r/settings/addbyurl?url=${encodeURIComponent(fullUrl)}`
     window.open(gcUrl, '_blank')
   }
@@ -43,28 +42,18 @@ export default function Header({ status, loading, onScrape, filters }) {
             {scraping ? (
               <span className={styles.scraping}>
                 <RefreshCw size={13} className={styles.spinning} />
-                Scraping…
+                Syncing…
               </span>
             ) : (
               <span className={styles.fresh}>
                 <span className={styles.dot} />
-                {status.offer_count} offers · updated {formatAge(status.cache_age_minutes)}
+                {status.offer_count} offers · synced {formatLastSynced(status.last_scraped)}
               </span>
             )}
           </div>
         )}
 
         <div className={styles.actions}>
-          <button
-            className={styles.btnGhost}
-            onClick={onScrape}
-            disabled={scraping || loading}
-            title="Re-scrape all banks now"
-          >
-            <RefreshCw size={15} className={scraping ? styles.spinning : undefined} />
-            Refresh
-          </button>
-
           <button className={styles.btnOutline} onClick={handleDownload} title="Download ICS file">
             <Download size={15} />
             Download .ics

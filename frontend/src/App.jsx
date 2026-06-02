@@ -26,7 +26,6 @@ export default function App() {
     smFilter, setSmFilter,
     activeToday, setActiveToday,
     activeWeek, setActiveWeek,
-    triggerScrape,
   } = useOffers()
 
   const headerFilters = {
@@ -38,8 +37,6 @@ export default function App() {
     <div className={styles.app}>
       <Header
         status={status}
-        loading={loading}
-        onScrape={triggerScrape}
         filters={headerFilters}
       />
 
