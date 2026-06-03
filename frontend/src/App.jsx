@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { LayoutGrid, Table2, CalendarDays, Loader2 } from 'lucide-react'
 import { useOffers } from './hooks/useOffers'
-import { api } from './lib/api'
 import Header from './components/Header'
 import Filters from './components/Filters'
 import OfferCard from './components/OfferCard'
@@ -103,6 +102,13 @@ export default function App() {
           )}
         </main>
       </div>
+
+      <footer className={styles.footer}>
+        Made with ❤️ by{' '}
+        <a href="https://nimila.online" target="_blank" rel="noopener noreferrer">
+          nimila.online
+        </a>
+      </footer>
     </div>
   )
 }
