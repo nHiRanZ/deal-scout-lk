@@ -70,21 +70,21 @@ class OfferOut(BaseModel):
     supermarket: str
     offer_text: str
     card_type: str
-    valid_from: Optional[str]
-    valid_to: Optional[str]
+    valid_from: Optional[str] = None
+    valid_to: Optional[str] = None
     days_of_week: List[int]
     source_url: str
     is_active_today: bool
     is_active_this_week: bool
-    days_remaining: Optional[int]
+    days_remaining: Optional[int] = None
 
 
 class ScrapeStatus(BaseModel):
-    last_scraped: Optional[str]
+    last_scraped: Optional[str] = None
     offer_count: int
     scraping: bool
     errors: Dict[str, str]
-    cache_age_minutes: Optional[int]
+    cache_age_minutes: Optional[int] = None
 
 
 # ── Cache helpers ────────────────────────────────────────────────────────────
@@ -162,10 +162,8 @@ def _offer_to_dict(offer: Offer, bank_key: str) -> Dict:
 
 _CHROMIUM_ARGS = [
     "--no-sandbox",
-    "--disable-dev-shm-usage",  # avoid /dev/shm exhaustion in containers
+    "--disable-dev-shm-usage",  # use /tmp instead of /dev/shm (not available in containers)
     "--disable-gpu",
-    "--single-process",         # one process instead of forked renderers — saves ~150 MB
-    "--no-zygote",
 ]
 
 
@@ -317,7 +315,7 @@ def head_status() -> Response:
     return Response(status_code=200)
 
 
-@app.get("/api/status", response_model=ScrapeStatus)
+@app.get("/api/status")
 def get_status() -> ScrapeStatus:
     age = None
     if _last_scraped:
