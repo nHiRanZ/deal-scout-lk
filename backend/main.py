@@ -159,6 +159,61 @@ def _offer_to_dict(offer: Offer, bank_key: str) -> Dict:
 
 
 # ── Scraping ─────────────────────────────────────────────────────────────────
+
+_CHROMIUM_ARGS = [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",  # avoid /dev/shm exhaustion in containers
+    "--disable-gpu",
+    "--single-process",         # one process instead of forked renderers — saves ~150 MB
+    "--no-zygote",
+]
+
+
+async def _scrape_batched(bank_keys: List[str]) -> tuple[List[Dict], Dict[str, str]]:
+    """Launch one Chromium instance and scrape banks 2 at a time to stay within 512 MB."""
+    from playwright.async_api import async_playwright
+
+    offers: List[Dict] = []
+    errors: Dict[str, str] = {}
+    valid_keys = [k for k in bank_keys if k in BANKS]
+
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch(headless=True, args=_CHROMIUM_ARGS)
+        for i in range(0, len(valid_keys), 2):
+            batch = valid_keys[i:i + 2]
+            results = await asyncio.gather(
+                *[BANKS[k]["fn"](browser) for k in batch],
+                return_exceptions=True,
+            )
+            for key, result in zip(batch, results):
+                if isinstance(result, Exception):
+                    log.error("Scrape failed [%s]: %s", key, result)
+                    errors[key] = str(result)
+                else:
+                    offers.extend(_offer_to_dict(o, key) for o in result)
+        await browser.close()
+
+    return offers, errors
+
+
+def _load_manual_offers() -> List[Dict]:
+    try:
+        import importlib.util
+        manual_path = Path(__file__).parent / "manual_offers.py"
+        if not manual_path.exists():
+            return []
+        spec = importlib.util.spec_from_file_location("manual_offers", manual_path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return [
+            _offer_to_dict(offer, next((k for k, v in BANKS.items() if v["name"] == offer.bank), "manual"))
+            for offer in getattr(mod, "MANUAL_OFFERS", [])
+        ]
+    except Exception as e:
+        log.warning("Manual offers load failed: %s", e)
+        return []
+
+
 async def _do_scrape(bank_keys: List[str]) -> None:
     global _offers, _last_scraped, _scraping_in_progress, _scrape_errors
 
@@ -167,36 +222,9 @@ async def _do_scrape(bank_keys: List[str]) -> None:
     all_offers: List[Dict] = []
 
     try:
-        from playwright.async_api import async_playwright
-        async with async_playwright() as pw:
-            browser = await pw.chromium.launch(headless=True, args=["--no-sandbox"])
-
-            tasks = {key: BANKS[key]["fn"](browser) for key in bank_keys if key in BANKS}
-            results = await asyncio.gather(*tasks.values(), return_exceptions=True)
-
-            for key, result in zip(tasks.keys(), results):
-                if isinstance(result, Exception):
-                    log.error("Scrape failed [%s]: %s", key, result)
-                    _scrape_errors[key] = str(result)
-                else:
-                    for offer in result:
-                        all_offers.append(_offer_to_dict(offer, key))
-
-            await browser.close()
-
-        # Load manual offers
-        try:
-            import importlib.util
-            manual_path = Path(__file__).parent / "manual_offers.py"
-            if manual_path.exists():
-                spec = importlib.util.spec_from_file_location("manual_offers", manual_path)
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
-                for offer in getattr(mod, "MANUAL_OFFERS", []):
-                    bkey = next((k for k, v in BANKS.items() if v["name"] == offer.bank), "manual")
-                    all_offers.append(_offer_to_dict(offer, bkey))
-        except Exception as e:
-            log.warning("Manual offers load failed: %s", e)
+        scraped, errors = await _scrape_batched(bank_keys)
+        _scrape_errors = errors
+        all_offers = scraped + _load_manual_offers()
 
         _offers = all_offers
         _last_scraped = datetime.now(TZ)
