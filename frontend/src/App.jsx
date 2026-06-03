@@ -6,6 +6,7 @@ import Filters from './components/Filters'
 import OfferCard from './components/OfferCard'
 import BankCompare from './components/BankCompare'
 import CalendarView from './components/CalendarView'
+import Disclaimer from './components/Disclaimer'
 import styles from './App.module.css'
 
 const VIEWS = [
@@ -17,6 +18,7 @@ const VIEWS = [
 export default function App() {
   const [view, setView] = useState('cards')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [disclaimerOpen, setDisclaimerOpen] = useState(false)
 
   const {
     offers, status, banks, supermarkets,
@@ -119,7 +121,13 @@ export default function App() {
         <a href="https://nimila.online" target="_blank" rel="noopener noreferrer">
           nimila.online
         </a>
+        {' · '}
+        <button className={styles.footerLink} onClick={() => setDisclaimerOpen(true)}>
+          Disclaimer
+        </button>
       </footer>
+
+      {disclaimerOpen && <Disclaimer onClose={() => setDisclaimerOpen(false)} />}
     </div>
   )
 }

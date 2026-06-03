@@ -177,11 +177,15 @@
   flex-shrink: 0;
 }
 
-.footer a {
+.footer a, .footerLink {
   color: var(--accent);
   text-decoration: none;
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
 }
 
-.footer a:hover {
+.footer a:hover, .footerLink:hover {
   text-decoration: underline;
 }
