@@ -10,7 +10,7 @@ import logging
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Annotated, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 try:
     from zoneinfo import ZoneInfo
@@ -356,7 +356,7 @@ def _check_scrape_key(key: Optional[str]) -> bool:
 @app.get("/api/scrape", responses={401: {"description": "Invalid or missing scrape key"}})
 async def trigger_scrape_get(
     background_tasks: BackgroundTasks,
-    key: Annotated[Optional[str], Query()] = None,
+    key: Optional[str] = Query(default=None),
 ) -> Dict:
     if not _check_scrape_key(key):
         raise HTTPException(status_code=401, detail="Invalid or missing key")
