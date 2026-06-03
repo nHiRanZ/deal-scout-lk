@@ -174,6 +174,24 @@ def parse_days(text: str) -> List[int]:
     return sorted(set(days))
 
 
+def parse_specific_dates(text: str) -> List[date]:
+    """Extract a list of individual dates from 'valid only on date1 & date2' patterns.
+
+    Distinct from parse_date_range: handles offers valid on specific named calendar
+    days rather than a continuous window (e.g. 'Valid only on 28th May & 26th June').
+    """
+    m = re.search(r"(?:valid\s+only\s+on|only\s+on|valid\s+on)\s+([^.]+)", text, re.I)
+    if not m:
+        return []
+    parts = re.split(r'\s*[&,]\s*|\s+and\s+', m.group(1), flags=re.I)
+    dates: List[date] = []
+    for part in parts:
+        d = parse_date(part.strip())
+        if d:
+            dates.append(d)
+    return sorted(dates)
+
+
 def parse_date(text: str) -> Optional[date]:
     """Try to parse a date from strings like '30th June 2025', 'June 30, 2025'."""
     # Normalise ordinals
@@ -318,49 +336,58 @@ async def fetch_page(
 # Per-bank Scrapers
 # ─────────────────────────────────────────────
 
+_SAMPATH_BANK = "Sampath Bank"
+
+
+def _parse_sampath_block(block, url: str) -> Optional[Offer]:
+    """Extract one Offer from a sampath.lk card-offer-block element."""
+    discount_el = block.find("div", class_=lambda c: c and "discount" in c)
+    place_el    = block.find("p",   class_=lambda c: c and "place" in c)
+    date_el     = block.find("p",   class_=lambda c: c and "date" in c)
+    name_el     = block.find("div", class_=lambda c: c and "card-name" in c)
+
+    discount_text = discount_el.get_text(strip=True) if discount_el else ""
+    place_text    = place_el.get_text(strip=True)    if place_el    else ""
+    date_text     = date_el.get_text(strip=True)     if date_el     else ""
+    full_text     = name_el.get_text(separator=" ", strip=True) if name_el else ""
+
+    if not discount_text and not place_text:
+        return None
+    sm = detect_supermarket(place_text) or detect_supermarket(full_text)
+    if sm is None:
+        return None
+
+    days = parse_days(date_text)
+    from_d, to_d = parse_date_range(date_text)
+    specific = parse_specific_dates(date_text)
+    if specific:
+        from_d, to_d = specific[0], specific[-1]
+        days = days or sorted({d.weekday() for d in specific})
+
+    return Offer(
+        bank=_SAMPATH_BANK,
+        supermarket=sm,
+        offer_text=extract_offer_text(full_text) or extract_offer_text(discount_text),
+        card_type=detect_card_type(full_text),
+        valid_from=from_d,
+        valid_to=to_d,
+        days_of_week=days,
+        source_url=url,
+        raw_terms=(date_text + " " + full_text)[:500],
+    )
+
+
 async def scrape_sampath(browser: Browser) -> List[Offer]:
-    """Sampath Bank – credit card offers, supermarket tab."""
+    """Scrapes sampath.lk credit card supermarket offers."""
     url = "https://www.sampath.lk/sampath-cards/credit-card-offer?firstTab=super_markets"
-    log.info("Scraping Sampath Bank...")
+    log.info("Scraping %s...", _SAMPATH_BANK)
     soup = await fetch_page(browser, url, wait_selector=".card-offer-block")
-    offers: List[Offer] = []
-
-    blocks = soup.find_all("div", class_=lambda c: c and "card-offer-block" in c)
-    for block in blocks:
-        discount_el = block.find("div", class_=lambda c: c and "discount" in c)
-        place_el = block.find("p", class_=lambda c: c and "place" in c)
-        date_el = block.find("p", class_=lambda c: c and "date" in c)
-        name_el = block.find("div", class_=lambda c: c and "card-name" in c)
-
-        discount_text = discount_el.get_text(strip=True) if discount_el else ""
-        place_text = place_el.get_text(strip=True) if place_el else ""
-        date_text = date_el.get_text(strip=True) if date_el else ""
-        full_text = name_el.get_text(separator=" ", strip=True) if name_el else ""
-
-        if not discount_text and not place_text:
-            continue
-
-        sm = detect_supermarket(place_text) or detect_supermarket(full_text)
-        if sm is None:
-            continue
-        offer_text = extract_offer_text(full_text) or extract_offer_text(discount_text)
-        days = parse_days(date_text)
-        _, to_d = parse_date_range(date_text)
-        card = detect_card_type(full_text)
-
-        offers.append(Offer(
-            bank="Sampath Bank",
-            supermarket=sm,
-            offer_text=offer_text,
-            card_type=card,
-            valid_from=None,
-            valid_to=to_d,
-            days_of_week=days,
-            source_url=url,
-            raw_terms=(date_text + " " + full_text)[:500],
-        ))
-
-    log.info(f"  Sampath → {len(offers)} offers")
+    offers = [
+        offer
+        for block in soup.find_all("div", class_=lambda c: c and "card-offer-block" in c)
+        if (offer := _parse_sampath_block(block, url)) is not None
+    ]
+    log.info("  %s → %d offers", _SAMPATH_BANK, len(offers))
     return offers
 
 
@@ -772,7 +799,7 @@ def _parse_offer_block(text: str, bank: str, url: str, default_card: str) -> Opt
 # ─────────────────────────────────────────────
 
 BANKS: Dict[str, Dict] = {
-    "sampath": {"name": "Sampath Bank",        "fn": scrape_sampath},
+    "sampath": {"name": _SAMPATH_BANK,          "fn": scrape_sampath},
     "seylan":  {"name": "Seylan Bank",         "fn": scrape_seylan},
     "combank": {"name": "Commercial Bank",     "fn": scrape_combank},
     "ntb":     {"name": "Nations Trust Bank",  "fn": scrape_ntb},
@@ -855,7 +882,7 @@ def _make_event(offer: Offer, dtstart: date, dtend: date) -> Event:
     # Color category hint (Google Calendar reads X-MICROSOFT-CDO-BUSYSTATUS but
     # category-based colour requires a label – we use categories instead)
     category_map = {
-        "Sampath Bank": "Sampath",
+        _SAMPATH_BANK: "Sampath",
         "Seylan Bank": "Seylan",
         "Commercial Bank": "ComBank",
         "Nations Trust Bank": "NTB",
