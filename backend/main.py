@@ -10,14 +10,14 @@ import logging
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Annotated, Dict, List, Optional, Tuple
 
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from pytz import timezone as ZoneInfo
 
-from fastapi import FastAPI, BackgroundTasks, Query
+from fastapi import FastAPI, BackgroundTasks, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -312,12 +312,37 @@ def get_status() -> ScrapeStatus:
     )
 
 
+def _check_scrape_key(key: Optional[str]) -> bool:
+    """Return True if the request is authorised to trigger a scrape.
+
+    If SCRAPE_KEY env var is set, the caller must supply a matching ?key=.
+    If unset (local dev), any call is allowed.
+    """
+    import os
+    required = os.environ.get("SCRAPE_KEY", "")
+    if not required:
+        return True
+    return key == required
+
+
+@app.get("/api/scrape", responses={401: {"description": "Invalid or missing scrape key"}})
+async def trigger_scrape_get(
+    background_tasks: BackgroundTasks,
+    key: Annotated[Optional[str], Query()] = None,
+) -> Dict:
+    if not _check_scrape_key(key):
+        raise HTTPException(status_code=401, detail="Invalid or missing key")
+    if _scraping_in_progress:
+        return {"status": "already_running"}
+    background_tasks.add_task(_do_scrape, list(BANKS.keys()))
+    return {"status": "started"}
+
+
 @app.post("/api/scrape")
 async def trigger_scrape(
     background_tasks: BackgroundTasks,
     banks: str = Query(default=",".join(BANKS.keys())),
 ) -> Dict:
-    global _scraping_in_progress
     if _scraping_in_progress:
         return {"status": "already_running"}
     bank_keys = [b.strip() for b in banks.split(",") if b.strip() in BANKS]
