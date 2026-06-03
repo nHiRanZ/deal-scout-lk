@@ -300,10 +300,10 @@ async def fetch_page(
             "Sec-Fetch-Mode": "navigate",
             "Sec-Fetch-Site": "none",
         })
-        await page.goto(url, wait_until="domcontentloaded", timeout=40_000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=60_000)
         if wait_selector:
             try:
-                await page.wait_for_selector(wait_selector, timeout=10_000)
+                await page.wait_for_selector(wait_selector, timeout=15_000)
             except Exception:
                 pass
         await page.wait_for_timeout(extra_wait)
@@ -501,7 +501,7 @@ async def scrape_hnb(browser: Browser) -> List[Offer]:
     url = "https://www.hnb.lk/card-promotion?category=Shopping"
     log.info("Scraping Hatton National Bank (HNB)...")
     # Wait for the offer h4s (class includes "text-primary") to appear
-    soup = await fetch_page(browser, url, wait_selector="h4[class*='text-primary']", extra_wait=6_000)
+    soup = await fetch_page(browser, url, wait_selector="h4[class*='text-primary']", extra_wait=15_000)
     offers: List[Offer] = []
 
     seen: set = set()
@@ -579,7 +579,7 @@ async def scrape_dfcc(browser: Browser) -> List[Offer]:
     """DFCC Bank – cardOfferText holds the full descriptive offer sentence."""
     url = "https://www.dfcc.lk/supermarkets-credit"
     log.info("Scraping DFCC Bank...")
-    soup = await fetch_page(browser, url, wait_selector="p.cardOfferText", extra_wait=5_000)
+    soup = await fetch_page(browser, url, wait_selector="p.cardOfferText", extra_wait=12_000)
     offers: List[Offer] = []
 
     for card in soup.find_all("a", class_="cardd"):
