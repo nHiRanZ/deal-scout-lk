@@ -136,3 +136,36 @@
 .btnAccent:hover {
   background: #ffc44d;
 }
+
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .header {
+    padding: 0 16px;
+    height: 56px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .logo {
+    font-size: 22px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .status {
+    display: none;
+  }
+
+  /* Show only icons on small screens */
+  .btnLabel {
+    display: none;
+  }
+
+  .btnOutline, .btnAccent {
+    padding: 7px 10px;
+  }
+}

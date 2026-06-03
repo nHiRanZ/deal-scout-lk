@@ -159,6 +159,35 @@
   text-align: center;
 }
 
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .container {
+    grid-template-columns: 1fr;
+    height: auto;
+    padding: 16px;
+    gap: 16px;
+    overflow: visible;
+  }
+
+  .calWrap {
+    padding-right: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+  }
+
+  .offerPanel {
+    padding-left: 0;
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .panelList {
+    overflow-y: visible;
+    max-height: none;
+  }
+}
+
 /* Compact offer row for the calendar panel */
 .offerRow {
   display: flex;

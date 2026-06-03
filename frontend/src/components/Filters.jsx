@@ -20,6 +20,7 @@ export default function Filters({
   smFilter, setSmFilter,
   activeToday, setActiveToday,
   activeWeek, setActiveWeek,
+  isOpen,
 }) {
   function toggleBank(key) {
     setSelectedBanks(prev =>
@@ -30,7 +31,7 @@ export default function Filters({
   function clearBanks() { setSelectedBanks([]) }
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
       {/* Quick filters */}
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>

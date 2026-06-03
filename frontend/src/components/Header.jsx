@@ -66,12 +66,12 @@ export default function Header({ status, filters }) {
 
           <button className={styles.btnOutline} onClick={handleDownload} title="Download ICS file">
             <Download size={15} />
-            Download .ics
+            <span className={styles.btnLabel}>Download .ics</span>
           </button>
 
           <button className={styles.btnAccent} onClick={handleAddToGoogle} title="Add to Google Calendar">
             <Calendar size={15} />
-            Add to Google Cal
+            <span className={styles.btnLabel}>Add to Google Cal</span>
           </button>
         </div>
       </div>

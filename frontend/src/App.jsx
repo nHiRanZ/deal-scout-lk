@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LayoutGrid, Table2, CalendarDays, Loader2 } from 'lucide-react'
+import { LayoutGrid, Table2, CalendarDays, Loader2, SlidersHorizontal, X } from 'lucide-react'
 import { useOffers } from './hooks/useOffers'
 import Header from './components/Header'
 import Filters from './components/Filters'
@@ -16,6 +16,7 @@ const VIEWS = [
 
 export default function App() {
   const [view, setView] = useState('cards')
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const {
     offers, status, banks, supermarkets,
@@ -48,6 +49,7 @@ export default function App() {
           smFilter={smFilter} setSmFilter={setSmFilter}
           activeToday={activeToday} setActiveToday={setActiveToday}
           activeWeek={activeWeek} setActiveWeek={setActiveWeek}
+          isOpen={filtersOpen}
         />
 
         <main className={styles.main}>
@@ -65,11 +67,20 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <span className={styles.offerCount}>
-              {loading && status?.scraping
-                ? 'Scraping…'
-                : `${offers.length} offer${offers.length !== 1 ? 's' : ''}`}
-            </span>
+            <div className={styles.toolbarRight}>
+              <span className={styles.offerCount}>
+                {loading && status?.scraping
+                  ? 'Scraping…'
+                  : `${offers.length} offer${offers.length !== 1 ? 's' : ''}`}
+              </span>
+              <button
+                className={`${styles.filterToggle} ${filtersOpen ? styles.filterToggleActive : ''}`}
+                onClick={() => setFiltersOpen(o => !o)}
+                aria-label="Toggle filters"
+              >
+                {filtersOpen ? <X size={16} /> : <SlidersHorizontal size={16} />}
+              </button>
+            </div>
           </div>
 
           {/* Content */}
