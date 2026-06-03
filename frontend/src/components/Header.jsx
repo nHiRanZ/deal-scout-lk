@@ -1,5 +1,6 @@
-import { RefreshCw, Calendar, Download } from 'lucide-react'
+import { RefreshCw, Calendar, Download, Sun, Moon } from 'lucide-react'
 import { api } from '../lib/api'
+import { useTheme } from '../hooks/useTheme'
 import styles from './Header.module.css'
 
 function formatLastSynced(isoStr) {
@@ -14,6 +15,7 @@ function formatLastSynced(isoStr) {
 
 export default function Header({ status, filters }) {
   const scraping = status?.scraping
+  const { theme, toggle } = useTheme()
 
   function handleDownload() {
     api.downloadIcs({ banks: filters.banks, cards: filters.cards })
@@ -54,6 +56,14 @@ export default function Header({ status, filters }) {
         )}
 
         <div className={styles.actions}>
+          <button
+            className={styles.btnTheme}
+            onClick={toggle}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+
           <button className={styles.btnOutline} onClick={handleDownload} title="Download ICS file">
             <Download size={15} />
             Download .ics
