@@ -74,7 +74,7 @@ export default function OfferCard({ offer, style }) {
             {offer.valid_from && offer.valid_to && <span className={styles.arrow}>→</span>}
             {offer.valid_to && <span>{formatDate(offer.valid_to)}</span>}
             {!offer.valid_from && !offer.valid_to && (
-              <span className={styles.noDate}>No dates specified</span>
+              <span className={styles.noDate}>Date couldn't be found. Please check listing.</span>
             )}
           </div>
 
@@ -84,7 +84,7 @@ export default function OfferCard({ offer, style }) {
                 {offer.days_remaining === 0 ? 'Ends today' : `${offer.days_remaining}d left`}
               </span>
             )}
-            {offer.is_active_today && (
+            {offer.is_active_today && (offer.valid_from || offer.valid_to) && (
               <span className={styles.activeToday}>● Today</span>
             )}
             <a href={offer.source_url} target="_blank" rel="noopener noreferrer" className={styles.srcLink}>

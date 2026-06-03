@@ -1,7 +1,32 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import OfferCard from './OfferCard'
+import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
 import styles from './CalendarView.module.css'
+
+const BANK_COLORS = {
+  sampath: '#e31837', seylan: '#1a5276', combank: '#c0392b',
+  ntb: '#1a3a5c', hnb: '#004b87', boc: '#006341',
+  dfcc: '#00843d', peoples: '#7b2d8b',
+}
+
+function OfferRow({ offer }) {
+  const color = BANK_COLORS[offer.bank_key] || '#888'
+  return (
+    <div className={styles.offerRow}>
+      <div className={styles.rowStripe} style={{ background: color }} />
+      <div className={styles.rowBody}>
+        <div className={styles.rowTop}>
+          <span className={styles.rowBank} style={{ color }}>{offer.bank}</span>
+          <span className={styles.rowBadge}>{offer.card_type}</span>
+        </div>
+        <div className={styles.rowSuper}>{offer.supermarket}</div>
+        <div className={styles.rowOffer}>{offer.offer_text}</div>
+      </div>
+      <a href={offer.source_url} target="_blank" rel="noopener noreferrer" className={styles.rowLink}>
+        <ExternalLink size={13} />
+      </a>
+    </div>
+  )
+}
 
 const WEEKDAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 const MONTHS = ['January','February','March','April','May','June',
@@ -115,7 +140,7 @@ export default function CalendarView({ offers }) {
             <div className={styles.panelEmpty}>No offers on this day.</div>
           ) : (
             selectedOffers.map((o, i) => (
-              <OfferCard key={o.id + i} offer={o} style={{ animationDelay: `${i * 0.04}s` }} />
+              <OfferRow key={o.id + i} offer={o} />
             ))
           )}
         </div>
