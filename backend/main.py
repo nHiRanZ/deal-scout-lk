@@ -379,7 +379,11 @@ def get_offers(
     active_today: Optional[bool] = Query(None),
     active_week: Optional[bool] = Query(None),
 ) -> Dict:
-    results = list(_offers)
+    today_iso = date.today().isoformat()
+    results = [
+        o for o in _offers
+        if not o["valid_to"] or o["valid_to"] >= today_iso
+    ]
 
     if banks:
         bank_keys = {b.strip().lower() for b in banks.split(",")}
