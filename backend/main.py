@@ -203,6 +203,9 @@ async def _do_scrape(bank_keys: List[str]) -> None:
         _save_cache(all_offers)
         log.info("Scrape complete: %d offers", len(all_offers))
 
+    except Exception as e:
+        log.exception("Scrape run failed: %s", e)
+        _scrape_errors["__scraper__"] = str(e)
     finally:
         _scraping_in_progress = False
 
@@ -280,6 +283,11 @@ async def startup() -> None:
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
+
+@app.head("/api/status")
+def head_status() -> Response:
+    return Response(status_code=200)
+
 
 @app.get("/api/status", response_model=ScrapeStatus)
 def get_status() -> ScrapeStatus:
