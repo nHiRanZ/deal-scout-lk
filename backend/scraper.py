@@ -576,13 +576,20 @@ async def scrape_boc(browser: Browser) -> List[Offer]:
 
 
 async def scrape_dfcc(browser: Browser) -> List[Offer]:
-    """DFCC Bank – cardOfferText holds the full descriptive offer sentence."""
+    """Scrapes dfcc.lk/supermarkets-credit — cardOfferText holds the offer sentence."""
+    bank = "DFCC Bank"
     url = "https://www.dfcc.lk/supermarkets-credit"
-    log.info("Scraping DFCC Bank...")
+    log.info("Scraping %s...", bank)
     soup = await fetch_page(browser, url, wait_selector="p.cardOfferText", extra_wait=12_000)
     offers: List[Offer] = []
 
-    for card in soup.find_all("a", class_="cardd"):
+    cards = soup.find_all("a", class_="cardd")
+    offer_texts = soup.find_all("p", class_="cardOfferText")
+    log.info("  DFCC debug: a.cardd=%d  p.cardOfferText=%d  page-title=%r",
+             len(cards), len(offer_texts),
+             soup.title.string.strip() if soup.title else "none")
+
+    for card in cards:
         text_el = card.find("p", class_="cardOfferText")
         valid_el = card.find("p", class_="cardOfferValid")
         if not text_el:
@@ -595,10 +602,9 @@ async def scrape_dfcc(browser: Browser) -> List[Offer]:
         if sm is None:
             continue
 
-        # Strip trailing card eligibility from the offer sentence
         cleaned = re.sub(r'\s+with\s+DFCC\s+.*$', '', raw_text, flags=re.I).strip()
         offers.append(Offer(
-            bank="DFCC Bank",
+            bank=bank,
             supermarket=sm,
             offer_text=extract_offer_text(cleaned) or cleaned[:120],
             card_type="Credit",
@@ -609,7 +615,11 @@ async def scrape_dfcc(browser: Browser) -> List[Offer]:
             raw_terms=(raw_text + " " + date_text)[:500],
         ))
 
-    log.info(f"  DFCC Bank → {len(offers)} offers")
+    if not offers:
+        log.warning("  DFCC: specific selectors found nothing — falling back to generic scraper")
+        offers = _generic_scrape(soup, bank, url)
+
+    log.info("  %s → %d offers", bank, len(offers))
     return offers
 
 
