@@ -168,7 +168,7 @@ _CHROMIUM_ARGS = [
 
 
 async def _scrape_batched(bank_keys: List[str]) -> tuple[List[Dict], Dict[str, str]]:
-    """Launch one Chromium instance and scrape banks 2 at a time to stay within 512 MB."""
+    """Launch one Chromium instance and scrape banks one at a time to stay within 512 MB."""
     from playwright.async_api import async_playwright
 
     offers: List[Dict] = []
@@ -177,18 +177,13 @@ async def _scrape_batched(bank_keys: List[str]) -> tuple[List[Dict], Dict[str, s
 
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=True, args=_CHROMIUM_ARGS)
-        for i in range(0, len(valid_keys), 2):
-            batch = valid_keys[i:i + 2]
-            results = await asyncio.gather(
-                *[BANKS[k]["fn"](browser) for k in batch],
-                return_exceptions=True,
-            )
-            for key, result in zip(batch, results):
-                if isinstance(result, Exception):
-                    log.error("Scrape failed [%s]: %s", key, result)
-                    errors[key] = str(result)
-                else:
-                    offers.extend(_offer_to_dict(o, key) for o in result)
+        for key in valid_keys:
+            try:
+                result = await BANKS[key]["fn"](browser)
+                offers.extend(_offer_to_dict(o, key) for o in result)
+            except Exception as exc:
+                log.exception("Scrape failed [%s]: %s", key, exc)
+                errors[key] = str(exc)
         await browser.close()
 
     return offers, errors
