@@ -33,7 +33,7 @@ export default function Header({ status, filters }) {
       <div className={styles.brand}>
         <span className={styles.logo}>🛒</span>
         <div>
-          <h1 className={styles.title}>LK Deals</h1>
+          <h1 className={styles.title}>DealScoutLK</h1>
           <p className={styles.subtitle}>Sri Lanka Bank Supermarket Offers</p>
         </div>
       </div>
